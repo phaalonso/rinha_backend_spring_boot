@@ -1,7 +1,9 @@
 package com.example.demo;
 
+import com.example.demo.exceptions.NotFoundHttpException;
 import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -17,18 +19,22 @@ import java.util.UUID;
 @Service
 public class PessoaRepository {
     private final Connection connection;
-    private final NamedParameterJdbcTemplate parameterJdbcTemplate;
-    private final Gson gson;
+    private final JdbcTemplate jdbcTemplate;
 
     private static final String QUERY_INSERT_PESSOA = """
             insert into tb_people (id, name, nick, birth_date, stack)
-            values (:id, :name, :nick, :birth_date, :stack);
+            values (?, ?, ?, ?, ?)
+            """;
+
+    private static final String QUERY_FIND_PESSOA = """
+            select * from tb_people
+             where id = ?::uuid
             """;
 
     @Autowired
-    public PessoaRepository(DataSource dataSource, NamedParameterJdbcTemplate parameterJdbcTemplate) throws SQLException {
+    public PessoaRepository(DataSource dataSource, JdbcTemplate jdbcTemplate) throws SQLException {
         this.connection = dataSource.getConnection();
-        this.parameterJdbcTemplate = parameterJdbcTemplate;
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public void inserePessoa(PessoaModel pessoaModel) throws SQLException {
@@ -36,28 +42,30 @@ public class PessoaRepository {
                 ? null
                 : connection.createArrayOf("varchar", pessoaModel.getStack().toArray());
 
-        MapSqlParameterSource parameterSource = new MapSqlParameterSource()
-                .addValue("id", pessoaModel.getId())
-                .addValue("name", pessoaModel.getName())
-                .addValue("nick", pessoaModel.getNick())
-                .addValue("birth_date", pessoaModel.getBirthDate())
-                .addValue("stack", stack);
-
-        parameterJdbcTemplate.update(
+        jdbcTemplate.update(
                 QUERY_INSERT_PESSOA,
-                parameterSource);
+                pessoaModel.getId(),
+                pessoaModel.getName(),
+                pessoaModel.getNick(),
+                pessoaModel.getBirthDate(),
+                stack);
     }
 
     public PessoaModel findById(String id) {
-        return parameterJdbcTemplate.queryForObject(
-                "SELECT * FROM tb_people WHERE id = :id",
-                Map.of("id", id),
+        var result = jdbcTemplate.query(
+                QUERY_FIND_PESSOA,
                 (rs, i) -> new PessoaModel(
                         UUID.fromString(rs.getString("id")),
                         rs.getString("name"),
                         rs.getString("nick"),
                         rs.getTimestamp("birth_date").toLocalDateTime().toLocalDate(),
-                        (List<String>) rs.getArray("stack"))
-        );
+                        List.of((String[]) rs.getArray("stack").getArray())),
+                id);
+
+        if (result.isEmpty()) {
+            throw new NotFoundHttpException();
+        }
+
+        return result.get(0);
     }
 }

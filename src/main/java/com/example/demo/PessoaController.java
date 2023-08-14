@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.support.ServletUriComponentsBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 import java.sql.SQLException;
 import java.util.UUID;
@@ -40,12 +41,12 @@ public class PessoaController {
 
         pessoaRepository.inserePessoa(model);
 
-        return ResponseEntity.created(ServletUriComponentsBuilder.fromCurrentRequest().path("/{id}").buildAndExpand(model.getId()).toUri()).build();
+        return ResponseEntity.created(UriComponentsBuilder.fromPath("/people").path("/{id}").buildAndExpand(model.getId()).toUri()).build();
 
     }
 
-    @GetMapping("/:id")
-    public ResponseEntity<PessoaModel> getPessoaById(@PathParam("id") String id) {
+    @GetMapping("/{id}")
+    public ResponseEntity<PessoaModel> getPessoaById(@PathVariable String id) {
         var result = this.pessoaRepository.findById(id);
 
         return ResponseEntity.ok(result);

@@ -1,5 +1,6 @@
 package com.example.demo;
 
+import com.example.demo.exceptions.NotFoundHttpException;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,12 @@ public class RinhaControllerAdvice {
     public ResponseEntity<ErrorMessage> uniqueKeyError() {
         return ResponseEntity.status(HttpStatus.UNPROCESSABLE_ENTITY)
                 .body(new ErrorMessage("Esse nick já está sendo utilizado"));
+    }
+
+    @ExceptionHandler(NotFoundHttpException.class)
+    public ResponseEntity<?> notFound(RuntimeException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .build();
     }
 
     @ExceptionHandler(RuntimeException.class)

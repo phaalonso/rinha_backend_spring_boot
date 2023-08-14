@@ -3,7 +3,12 @@ Content-Type: application/json
 
 {
   "name": "joao",
-  "nick": "joao",
+  "nick": "{{$random.email}}",
   "birthDate": "2020-07-12",
   "stack": ["Nodejs", "PHP", "C"]
 }
+
+###
+
+GET http://127.0.0.1:8080/people/a61a8f47-6af5-44ca-b3a8-ede22c97c7f4
+Content-Type: application/json

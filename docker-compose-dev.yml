@@ -2,7 +2,6 @@ version: "3.5"
 
 services:
   postgres:
-    container_name: rinha_backend_postgres
     image: postgres:15
     volumes:
       - ./db:/docker-entrypoint-initdb.d

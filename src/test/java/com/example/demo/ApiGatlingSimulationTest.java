@@ -57,6 +57,13 @@ public class ApiGatlingSimulationTest extends Simulation {
                             )
                     )
                     .check(status().is(201))
+                    .check(headerRegex("Location", "/people/(.*)")
+                            .saveAs("findUser"))
+            )
+            .pause(1)
+            .exec(http("find created user request")
+                    .get("/people/#{findUser}")
+                    .check(status().is(200))
             );
 
     {
