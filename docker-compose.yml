@@ -1,0 +1,66 @@
+version: "3.5"
+
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:15
+    volumes:
+      - ./db:/docker-entrypoint-initdb.d
+    environment:
+      POSTGRES_USER: rinha
+      POSTGRES_PASSWORD: rinha
+      POSTGRES_DB: rinha
+    ports:
+      - "5432:5432"
+    networks:
+      spring-postgres:
+  api1:
+    hostname: api1
+    image: phaalonso/rinha_backend_spring
+    environment:
+      DATABASE_URL: jdbc:postgresql://postgres:5432/rinha
+    depends_on:
+      - postgres
+    networks:
+      spring-postgres:
+    ports:
+      - "8080:8080"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '1GB'
+#  api2:
+#    hostname: api2
+#    image: phaalonso/rinha_backend_spring
+#    environment:
+#      DATABASE_URL: jdbc:postgresql://postgres:5432/rinha
+#    depends_on:
+#      - postgres
+#    networks:
+#      spring-postgres:
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.25'
+#          memory: '1GB'
+#  nginx:
+#    image: nginx:latest
+#    volumes:
+#      - ./nginx.conf:/etc/nginx/nginx.conf:ro
+#    tmpfs:
+#      - /tmp/people-cache:rw,nodev,nosuid,size=500M
+#    depends_on:
+#      - api1
+#      - api2
+#    ports:
+#      - "9999:9999"
+#    networks:
+#      spring-postgres:
+#    deploy:
+#      resources:
+#        limits:
+#          cpus: '0.25'
+#          memory: '0.5GB'
+networks:
+  spring-postgres:
