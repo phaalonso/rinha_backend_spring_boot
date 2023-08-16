@@ -31,6 +31,8 @@ public class PessoaRepository {
              where id = ?::uuid
             """;
 
+    private static final String QUERY_COUNT = "SELECT COUNT(*) as qtd FROM tb_people";
+
     @Autowired
     public PessoaRepository(DataSource dataSource, JdbcTemplate jdbcTemplate) throws SQLException {
         this.connection = dataSource.getConnection();
@@ -67,5 +69,28 @@ public class PessoaRepository {
         }
 
         return result.get(0);
+    }
+
+    public Integer count() {
+        return jdbcTemplate.queryForObject(
+                QUERY_COUNT,
+                Integer.class);
+    }
+
+    public List<PessoaModel> findByTermo(String termo) {
+        return jdbcTemplate.query(
+               """
+                SELECT * FROM tb_people
+                WHERE to_tsquery('people', ?) @@ search
+                LIMIT 50
+                """,
+                (rs, i) -> new PessoaModel(
+                        UUID.fromString(rs.getString("id")),
+                        rs.getString("name"),
+                        rs.getString("nick"),
+                        rs.getTimestamp("birth_date").toLocalDateTime().toLocalDate(),
+                        List.of((String[]) rs.getArray("stack").getArray())),
+                termo
+        );
     }
 }
