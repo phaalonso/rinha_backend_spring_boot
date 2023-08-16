@@ -12,19 +12,16 @@ services:
       POSTGRES_DB: rinha
     ports:
       - "5432:5432"
-    networks:
-      spring-postgres:
   api1:
     hostname: api1
     image: phaalonso/rinha_backend_spring
     environment:
+      PORT: 9999
       DATABASE_URL: jdbc:postgresql://postgres:5432/rinha
     depends_on:
       - postgres
-    networks:
-      spring-postgres:
     ports:
-      - "8080:8080"
+      - "9999:9999"
     deploy:
       resources:
         limits:
@@ -37,8 +34,6 @@ services:
 #      DATABASE_URL: jdbc:postgresql://postgres:5432/rinha
 #    depends_on:
 #      - postgres
-#    networks:
-#      spring-postgres:
 #    deploy:
 #      resources:
 #        limits:
@@ -55,12 +50,12 @@ services:
 #      - api2
 #    ports:
 #      - "9999:9999"
-#    networks:
-#      spring-postgres:
 #    deploy:
 #      resources:
 #        limits:
 #          cpus: '0.25'
 #          memory: '0.5GB'
 networks:
-  spring-postgres:
+  default:
+    driver: bridge
+    name: rinha

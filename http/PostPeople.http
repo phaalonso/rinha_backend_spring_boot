@@ -1,4 +1,4 @@
-POST http://127.0.0.1:8080/people
+POST http://localhost:9999/people
 Content-Type: application/json
 
 {
@@ -10,5 +10,15 @@ Content-Type: application/json
 
 ###
 
-GET http://127.0.0.1:8080/people/a61a8f47-6af5-44ca-b3a8-ede22c97c7f4
+GET http://127.0.0.1:8080/people/e2256e7a-c298-49b2-83d3-0283c89108d3
+Content-Type: application/json
+
+###
+
+GET http://127.0.0.1:8080/people?t=PHP
+Content-Type: application/json
+
+###
+
+GET http://localhost:9999/contagem-pessoas
 Content-Type: application/json
