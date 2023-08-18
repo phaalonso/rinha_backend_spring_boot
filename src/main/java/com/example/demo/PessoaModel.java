@@ -6,19 +6,19 @@ import java.util.UUID;
 
 public class PessoaModel {
     private UUID id;
-    private String name;
-    private String nick;
-    private LocalDate birthDate;
+    private String nome;
+    private String apelido;
+    private String nascimento;
     private List<String> stack;
 
     public PessoaModel() {
     }
 
-    public PessoaModel(UUID id, String name, String nick, LocalDate birthDate, List<String> stack) {
+    public PessoaModel(UUID id, String nome, String apelido, String nascimento, List<String> stack) {
         this.id = id;
-        this.name = name;
-        this.nick = nick;
-        this.birthDate = birthDate;
+        this.nome = nome;
+        this.apelido = apelido;
+        this.nascimento = nascimento;
         this.stack = stack;
     }
 
@@ -30,28 +30,28 @@ public class PessoaModel {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public String getNome() {
+        return nome;
     }
 
-    public void setName(String name) {
-        this.name = name;
+    public void setNome(String nome) {
+        this.nome = nome;
     }
 
-    public String getNick() {
-        return nick;
+    public String getApelido() {
+        return apelido;
     }
 
-    public void setNick(String nick) {
-        this.nick = nick;
+    public void setApelido(String apelido) {
+        this.apelido = apelido;
     }
 
-    public LocalDate getBirthDate() {
-        return birthDate;
+    public String getNascimento() {
+        return nascimento;
     }
 
-    public void setBirthDate(LocalDate birthDate) {
-        this.birthDate = birthDate;
+    public void setNascimento(String nascimento) {
+        this.nascimento = nascimento;
     }
 
     public List<String> getStack() {
@@ -65,11 +65,11 @@ public class PessoaModel {
     @Override
     public String toString() {
         return "PessoaModel{" +
-                "id=" + id +
-                ", name='" + name + '\'' +
-                ", nick='" + nick + '\'' +
-                ", birthDate=" + birthDate +
-                ", stack=" + stack +
-                '}';
+               "id=" + id +
+               ", name='" + nome + '\'' +
+               ", nick='" + apelido + '\'' +
+               ", birthDate=" + nascimento +
+               ", stack=" + stack +
+               '}';
     }
 }

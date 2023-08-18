@@ -1,19 +1,18 @@
 package com.example.demo;
 
 import com.example.demo.exceptions.NotFoundHttpException;
-import com.google.gson.Gson;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
-import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.stereotype.Service;
 
 import javax.sql.DataSource;
+import java.sql.Array;
 import java.sql.Connection;
 import java.sql.SQLException;
+import java.sql.Types;
 import java.time.LocalDate;
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -23,7 +22,7 @@ public class PessoaRepository {
 
     private static final String QUERY_INSERT_PESSOA = """
             insert into tb_people (id, name, nick, birth_date, stack)
-            values (?, ?, ?, ?, ?)
+            values (?, ?, ?, ?::date, ?)
             """;
 
     private static final String QUERY_FIND_PESSOA = """
@@ -40,28 +39,37 @@ public class PessoaRepository {
     }
 
     public void inserePessoa(PessoaModel pessoaModel) throws SQLException {
-        var stack = pessoaModel.getStack() == null
-                ? null
-                : connection.createArrayOf("varchar", pessoaModel.getStack().toArray());
+        Object stack = pessoaModel.getStack();
 
-        jdbcTemplate.update(
+        if (stack != null) {
+            stack = connection.createArrayOf("varchar", pessoaModel.getStack().toArray());
+        }
+
+        var rows = jdbcTemplate.update(
                 QUERY_INSERT_PESSOA,
                 pessoaModel.getId(),
-                pessoaModel.getName(),
-                pessoaModel.getNick(),
-                pessoaModel.getBirthDate(),
+                pessoaModel.getNome(),
+                pessoaModel.getApelido(),
+                pessoaModel.getNascimento(),
                 stack);
+
+        if (rows != 1) {
+            throw new RuntimeException("Não foi possível inserir o usuário");
+        }
     }
 
     public PessoaModel findById(String id) {
         var result = jdbcTemplate.query(
                 QUERY_FIND_PESSOA,
-                (rs, i) -> new PessoaModel(
-                        UUID.fromString(rs.getString("id")),
-                        rs.getString("name"),
-                        rs.getString("nick"),
-                        rs.getTimestamp("birth_date").toLocalDateTime().toLocalDate(),
-                        List.of((String[]) rs.getArray("stack").getArray())),
+                (rs, i) -> {
+                    var array = rs.getArray("stack");
+                    return new PessoaModel(
+                            UUID.fromString(rs.getString("id")),
+                            rs.getString("name"),
+                            rs.getString("nick"),
+                            rs.getString("birth_date"),
+                            array == null ? null : List.of((String[]) array.getArray()));
+                },
                 id);
 
         if (result.isEmpty()) {
@@ -79,16 +87,16 @@ public class PessoaRepository {
 
     public List<PessoaModel> findByTermo(String termo) {
         return jdbcTemplate.query(
-               """
-                SELECT * FROM tb_people
-                WHERE to_tsquery('people', ?) @@ search
-                LIMIT 50
-                """,
+                """
+                        SELECT * FROM tb_people
+                        WHERE plainto_tsquery('people', ?) @@ search
+                        LIMIT 50
+                        """,
                 (rs, i) -> new PessoaModel(
                         UUID.fromString(rs.getString("id")),
                         rs.getString("name"),
                         rs.getString("nick"),
-                        rs.getTimestamp("birth_date").toLocalDateTime().toLocalDate(),
+                        rs.getString("birth_date"),
                         List.of((String[]) rs.getArray("stack").getArray())),
                 termo
         );

@@ -1,16 +1,16 @@
-POST http://localhost:9999/people
+POST http://localhost:9999/pessoas
 Content-Type: application/json
 
 {
-  "name": "joao",
-  "nick": "{{$random.email}}",
-  "birthDate": "2020-07-12",
+  "nome": "joao",
+  "apelido": "11111111111111111111111111111111111",
+  "nascimento": "2020-07-12",
   "stack": ["Nodejs", "PHP", "C"]
 }
 
 ###
 
-GET http://127.0.0.1:8080/people/e2256e7a-c298-49b2-83d3-0283c89108d3
+GET http://localhost:9999/pessoas/45f18c18-3f27-46bf-b397-f82438e49049
 Content-Type: application/json
 
 ###

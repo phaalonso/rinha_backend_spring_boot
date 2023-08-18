@@ -11,3 +11,8 @@ services:
       POSTGRES_DB: rinha
     ports:
       - "5432:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.75'
+          memory: '1.5GB'
