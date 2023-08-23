@@ -3,6 +3,8 @@ package com.example.demo;
 import com.example.demo.exceptions.InvalidPeopleDataException;
 import com.example.demo.exceptions.QueryParameterNotFound;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.Cacheable;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -16,10 +18,12 @@ import java.util.UUID;
 @RestController
 public class PessoaController {
     private final PessoaRepository pessoaRepository;
+    private final RedisTemplate redisTemplate;
 
     @Autowired
-    public PessoaController(PessoaRepository pessoaRepository) {
+    public PessoaController(PessoaRepository pessoaRepository, RedisTemplate redisTemplate) {
         this.pessoaRepository = pessoaRepository;
+        this.redisTemplate = redisTemplate;
     }
 
     @GetMapping("/contagem-pessoas")
@@ -31,7 +35,7 @@ public class PessoaController {
 
     @PostMapping("/pessoas")
     @Transactional
-    public ResponseEntity<PessoaModel> createPeople(@RequestBody PessoaModel model) throws SQLException {
+    public ResponseEntity createPeople(@RequestBody PessoaModel model) throws SQLException {
         if (model.getApelido() == null || model.getApelido().length() > 32) {
             throw new InvalidPeopleDataException("Nick deve ser preenchido com tamanho maior que 32 caracteres");
         }
@@ -57,19 +61,21 @@ public class PessoaController {
         }
 
         model.setId(UUID.randomUUID());
+
         pessoaRepository.inserePessoa(model);
 
+        redisTemplate.opsForValue().set(model.getId().toString(), model);
+
         return ResponseEntity.created(
-                        UriComponentsBuilder.fromPath("/pessoas")
-                                .path("/{id}")
+                        UriComponentsBuilder.fromPath("/pessoas/{id}")
                                 .buildAndExpand(model.getId())
                                 .toUri())
-                .body(model);
+                .build();
     }
 
     @GetMapping("/pessoas")
     public ResponseEntity<List<PessoaModel>> findBessoa(@RequestParam(required = false) String t) {
-        if (t == null || t.isEmpty()) {
+        if (t == null || t.isEmpty() || t.isBlank()) {
             throw new QueryParameterNotFound();
         }
 
@@ -80,7 +86,11 @@ public class PessoaController {
 
     @GetMapping("/pessoas/{id}")
     public ResponseEntity<PessoaModel> getPessoaById(@PathVariable String id) {
-        var result = this.pessoaRepository.findById(id);
+        PessoaModel result = (PessoaModel) redisTemplate.opsForValue().get(id);
+
+        if (result == null) {
+           result = this.pessoaRepository.findById(id);
+        }
 
         return ResponseEntity.ok(result);
     }

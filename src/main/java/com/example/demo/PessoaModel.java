@@ -1,10 +1,10 @@
 package com.example.demo;
 
-import java.time.LocalDate;
+import java.io.Serializable;
 import java.util.List;
 import java.util.UUID;
 
-public class PessoaModel {
+public class PessoaModel implements Serializable {
     private UUID id;
     private String nome;
     private String apelido;

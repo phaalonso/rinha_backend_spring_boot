@@ -16,3 +16,16 @@ services:
         limits:
           cpus: '0.75'
           memory: '1.5GB'
+  redis:
+    hostname: redis
+    image: redis:latest
+    ports:
+      - '6379:6379'
+    deploy:
+      resources:
+        limits:
+          cpus: '0.25'
+          memory: '0.25GB'
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      - REDIS_DISABLE_COMMANDS=FLUSHDB,FLUSHALL
